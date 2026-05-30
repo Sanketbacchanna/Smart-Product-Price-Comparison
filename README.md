@@ -1,5 +1,7 @@
 # 🛒 Smart Product Price Comparison
 
+🚀 **Live Demo:** https://smart-product-price-comparison.onrender.com
+
 ## 📌 About
 
 **Smart Product Price Comparison** is a full-stack web scraping application built with Node.js and Express. It lets users search for any product and instantly compare prices across Amazon, Flipkart, Snapdeal, and Myntra — all in one place, without manually visiting each site.
@@ -33,39 +35,6 @@ Smart-Product-Price-Comparison/
 ├── scraper.js            # Web scraping logic for all platforms
 ├── package.json          # Project dependencies
 └── package-lock.json
-
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v14 or above)
-- npm (comes with Node.js)
-
-### Installation
-
-1. **Clone the repository**
-
-```bash
-git clone https://github.com/abhijeetpatil02/Smart-Product-Price-Comparison.git
-cd Smart-Product-Price-Comparison
-```
-
-2. **Install dependencies**
-
-```bash
-npm install
-```
-
-3. **Start the server**
-
-```bash
-node server.js
-```
-
-4. **Open the app**
-
-Visit `http://localhost:3000` in your browser.
 
 
 ## ⚠️ Disclaimer
