@@ -1,5 +1,6 @@
 # 🛒 Smart Product Price Comparison
 
+
 <p align="center">
   <a href=https://smart-product-price-comparison.onrender.com target="_blank">
     <img src="https://img.shields.io/badge/🚀_Live_Demo-Visit_Website-blue?style=for-the-badge" alt="Live Demo">
