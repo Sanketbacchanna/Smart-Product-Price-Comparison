@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resultCountSpan.textContent = ''; // Fixed: Clear previous results count
 
         try {
-            const response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+            // Updated: Using a relative URL path prevents CORS issues and ensures the request goes to the server hosting this frontend
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));
                 throw new Error(errData.error || 'Failed to fetch results from the server.');
