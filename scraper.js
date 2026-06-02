@@ -300,23 +300,159 @@ async function scrapeRelianceDigital(query) {
     }
 }
 
-async function searchAll(query) {
-    let amazonRes = [], flipkartRes = [], snapdealRes = [], myntraRes = [], cromaRes = [], relianceRes = [];
+async function scrapeBigBasket(query) {
     try {
-        [amazonRes, flipkartRes, snapdealRes, myntraRes, cromaRes, relianceRes] = await Promise.all([
+        const url = `https://www.bigbasket.com/custompage/sysgen/?type=search&slug=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        
+        $('.item').each((i, el) => {
+            const title = $(el).find('h6').text().trim() || $(el).find('.prod-name').text().trim();
+            const priceStr = $(el).find('.discnt-price').text().trim() || $(el).find('.Pricing___StyledLabel-sc-pldi2d-1').text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const link = 'https://www.bigbasket.com' + $(el).find('a').attr('href');
+            let image = $(el).find('img').attr('src');
+            image = fixImageUrl(image, 'https://www.bigbasket.com');
+
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'BigBasket',
+                    title,
+                    price: parseFloat(price),
+                    link,
+                    image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/en/3/36/BigBasket_Logo.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("BigBasket scrape error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeBlinkit(query) {
+    try {
+        const url = `https://blinkit.com/s/?q=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        
+        $('.Product__ProductContainer-sc-11drqkm-0').each((i, el) => {
+            const title = $(el).find('.Product__ProductName-sc-11drqkm-4').text().trim();
+            const priceStr = $(el).find('.ProductPrice__Price-sc-11drqkm-9').text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const link = 'https://blinkit.com' + $(el).find('a').attr('href');
+            let image = $(el).find('img').attr('src');
+            image = fixImageUrl(image, 'https://blinkit.com');
+
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Blinkit',
+                    title,
+                    price: parseFloat(price),
+                    link,
+                    image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Blinkit-yellow-app-icon.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Blinkit scrape error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeInstamart(query) {
+    try {
+        const url = `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        
+        $('[data-testid="item-container"]').each((i, el) => {
+            const title = $(el).find('[data-testid="item-name"]').text().trim();
+            const priceStr = $(el).find('[data-testid="item-price"]').text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const link = 'https://www.swiggy.com/instamart' + $(el).closest('a').attr('href');
+            let image = $(el).find('img').attr('src');
+            image = fixImageUrl(image, 'https://www.swiggy.com');
+
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Instamart',
+                    title,
+                    price: parseFloat(price),
+                    link,
+                    image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/en/1/12/Swiggy_logo.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Instamart scrape error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeZepto(query) {
+    try {
+        const url = `https://www.zeptonow.com/search?q=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        
+        $('[data-testid="product-card"]').each((i, el) => {
+            const title = $(el).find('[data-testid="product-name"]').text().trim();
+            const priceStr = $(el).find('[data-testid="product-price"]').text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const link = 'https://www.zeptonow.com' + $(el).closest('a').attr('href');
+            let image = $(el).find('img').attr('src');
+            image = fixImageUrl(image, 'https://www.zeptonow.com');
+
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Zepto',
+                    title,
+                    price: parseFloat(price),
+                    link,
+                    image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Zepto_Logo.png'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Zepto scrape error:", error.message);
+        return [];
+    }
+}
+
+async function searchAll(query) {
+    let amazonRes = [], flipkartRes = [], snapdealRes = [], myntraRes = [], cromaRes = [], relianceRes = [], bigbasketRes = [], blinkitRes = [], instamartRes = [], zeptoRes = [];
+    try {
+        [amazonRes, flipkartRes, snapdealRes, myntraRes, cromaRes, relianceRes, bigbasketRes, blinkitRes, instamartRes, zeptoRes] = await Promise.all([
             scrapeAmazon(query),
             scrapeFlipkart(query),
             scrapeSnapdeal(query),
             scrapeMyntra(query),
             scrapeCroma(query),
-            scrapeRelianceDigital(query)
+            scrapeRelianceDigital(query),
+            scrapeBigBasket(query),
+            scrapeBlinkit(query),
+            scrapeInstamart(query),
+            scrapeZepto(query)
         ]);
     } catch (err) {
         console.error("searchAll error:", err.message);
     }
     
     // Determine realistic base price, image, and title from any successful live scrapes
-    let allLiveResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes];
+    let allLiveResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes, ...bigbasketRes, ...blinkitRes, ...instamartRes, ...zeptoRes];
     let basePrice = 0;
     let realImage = null;
     let realTitle = query;
@@ -359,6 +495,10 @@ async function searchAll(query) {
     const mynLogo = 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Myntra_Logo.png';
     const croLogo = 'https://upload.wikimedia.org/wikipedia/commons/4/41/Croma_Logo.svg';
     const relLogo = 'https://upload.wikimedia.org/wikipedia/commons/2/29/Reliance_Digital_Logo.svg';
+    const bbLogo = 'https://upload.wikimedia.org/wikipedia/en/3/36/BigBasket_Logo.svg';
+    const blinkLogo = 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Blinkit-yellow-app-icon.svg';
+    const instaLogo = 'https://upload.wikimedia.org/wikipedia/en/1/12/Swiggy_logo.svg';
+    const zepLogo = 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Zepto_Logo.png';
 
     if (amazonRes.length === 0) {
         amazonRes = [getMockData('Amazon', amzLogo, 'amazon.in')];
@@ -378,8 +518,20 @@ async function searchAll(query) {
     if (relianceRes.length === 0) {
         relianceRes = [getMockData('Reliance Digital', relLogo, 'reliancedigital.in')];
     }
+    if (bigbasketRes.length === 0) {
+        bigbasketRes = [getMockData('BigBasket', bbLogo, 'bigbasket.com')];
+    }
+    if (blinkitRes.length === 0) {
+        blinkitRes = [getMockData('Blinkit', blinkLogo, 'blinkit.com')];
+    }
+    if (instamartRes.length === 0) {
+        instamartRes = [getMockData('Instamart', instaLogo, 'swiggy.com/instamart')];
+    }
+    if (zeptoRes.length === 0) {
+        zeptoRes = [getMockData('Zepto', zepLogo, 'zeptonow.com')];
+    }
 
-    let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes];
+    let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes, ...bigbasketRes, ...blinkitRes, ...instamartRes, ...zeptoRes];
 
     allResults = allResults.sort((a, b) => a.price - b.price);
     return allResults;
