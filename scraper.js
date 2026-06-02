@@ -234,21 +234,89 @@ async function scrapeMyntra(query) {
     }
 }
 
-async function searchAll(query) {
-    let amazonRes = [], flipkartRes = [], snapdealRes = [], myntraRes = [];
+async function scrapeCroma(query) {
     try {
-        [amazonRes, flipkartRes, snapdealRes, myntraRes] = await Promise.all([
+        const url = `https://www.croma.com/searchB?q=${encodeURIComponent(query)}%3Arelevance&text=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        
+        $('.product-item').each((i, el) => {
+            const title = $(el).find('.product-title').text().trim();
+            const priceStr = $(el).find('.amount').first().text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const link = 'https://www.croma.com' + $(el).find('a').attr('href');
+            let image = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
+            image = fixImageUrl(image, 'https://www.croma.com');
+
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Croma',
+                    title,
+                    price: parseFloat(price),
+                    link,
+                    image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/41/Croma_Logo.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Croma scrape error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeRelianceDigital(query) {
+    try {
+        const url = `https://www.reliancedigital.in/search?q=${encodeURIComponent(query)}:relevance`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        
+        $('.sp__product').each((i, el) => {
+            const title = $(el).find('.sp__name').text().trim();
+            const priceStr = $(el).find('.TextWeb__Text-sc-1cyx778-0').text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const link = 'https://www.reliancedigital.in' + $(el).closest('a').attr('href');
+            let image = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
+            image = fixImageUrl(image, 'https://www.reliancedigital.in');
+
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Reliance Digital',
+                    title,
+                    price: parseFloat(price),
+                    link,
+                    image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Reliance_Digital_Logo.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Reliance Digital scrape error:", error.message);
+        return [];
+    }
+}
+
+async function searchAll(query) {
+    let amazonRes = [], flipkartRes = [], snapdealRes = [], myntraRes = [], cromaRes = [], relianceRes = [];
+    try {
+        [amazonRes, flipkartRes, snapdealRes, myntraRes, cromaRes, relianceRes] = await Promise.all([
             scrapeAmazon(query),
             scrapeFlipkart(query),
             scrapeSnapdeal(query),
-            scrapeMyntra(query)
+            scrapeMyntra(query),
+            scrapeCroma(query),
+            scrapeRelianceDigital(query)
         ]);
     } catch (err) {
         console.error("searchAll error:", err.message);
     }
     
     // Determine realistic base price, image, and title from any successful live scrapes
-    let allLiveResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes];
+    let allLiveResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes];
     let basePrice = 0;
     let realImage = null;
     let realTitle = query;
@@ -289,6 +357,8 @@ async function searchAll(query) {
     const fkpLogo = 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Flipkart_logo.svg/600px-Flipkart_logo.svg.png';
     const snpLogo = 'https://upload.wikimedia.org/wikipedia/commons/9/90/Snapdeal_Logo.png';
     const mynLogo = 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Myntra_Logo.png';
+    const croLogo = 'https://upload.wikimedia.org/wikipedia/commons/4/41/Croma_Logo.svg';
+    const relLogo = 'https://upload.wikimedia.org/wikipedia/commons/2/29/Reliance_Digital_Logo.svg';
 
     if (amazonRes.length === 0) {
         amazonRes = [getMockData('Amazon', amzLogo, 'amazon.in')];
@@ -302,8 +372,14 @@ async function searchAll(query) {
     if (myntraRes.length === 0) {
         myntraRes = [getMockData('Myntra', mynLogo, 'myntra.com')];
     }
+    if (cromaRes.length === 0) {
+        cromaRes = [getMockData('Croma', croLogo, 'croma.com')];
+    }
+    if (relianceRes.length === 0) {
+        relianceRes = [getMockData('Reliance Digital', relLogo, 'reliancedigital.in')];
+    }
 
-    let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes];
+    let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes];
 
     allResults = allResults.sort((a, b) => a.price - b.price);
     return allResults;
