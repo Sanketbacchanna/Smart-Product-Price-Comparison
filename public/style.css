@@ -7,6 +7,16 @@
     --card-bg: rgba(30, 41, 59, 0.7);
     --border-color: rgba(255, 255, 255, 0.1);
     --best-deal: #10b981;
+    --price-drop: #ef4444;
+    --star-color: #fbbf24;
+}
+
+body.light-theme {
+    --bg-dark: #f8fafc;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -24,6 +34,7 @@ body {
     justify-content: center;
     position: relative;
     overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Background Gradients & Glassmorphism blobs */
@@ -76,10 +87,39 @@ body {
     align-items: center;
 }
 
-header {
-    text-align: center;
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
     margin-bottom: 3rem;
     animation: fadeInDown 0.8s ease-out;
+}
+
+.header-content {
+    flex: 1;
+    text-align: center;
+}
+
+.theme-toggle {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background: var(--accent);
+    color: white;
 }
 
 h1 {
@@ -92,7 +132,7 @@ h1 {
     margin-bottom: 0.5rem;
 }
 
-header p {
+.header-content p {
     color: var(--text-secondary);
     font-size: 1.1rem;
 }
@@ -326,6 +366,95 @@ header p {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* Controls */
+.controls-container {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.control-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.control-group select {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    font-size: 0.9rem;
+}
+
+/* Card Enhancements */
+.price-drop {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: var(--price-drop);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    z-index: 2;
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+}
+
+.card-image-container img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+}
+
+.card:hover .card-image-container img {
+    transform: scale(1.1);
+}
+
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.stars {
+    color: var(--star-color);
+    letter-spacing: 2px;
+}
+
+.rating-val {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.reviews-count {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 /* Mobile Responsiveness */

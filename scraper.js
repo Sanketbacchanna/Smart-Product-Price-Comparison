@@ -533,6 +533,16 @@ async function searchAll(query) {
 
     let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes, ...bigbasketRes, ...blinkitRes, ...instamartRes, ...zeptoRes];
 
+    // Augment with attractive mock data
+    allResults = allResults.map(item => {
+        return {
+            ...item,
+            rating: (Math.random() * 1.5 + 3.5).toFixed(1), // Rating between 3.5 and 5.0
+            reviewsCount: Math.floor(Math.random() * 5000) + 50,
+            priceDrop: Math.floor(Math.random() * 30) + 5 // 5% to 35% drop
+        };
+    });
+
     allResults = allResults.sort((a, b) => a.price - b.price);
     return allResults;
 }
