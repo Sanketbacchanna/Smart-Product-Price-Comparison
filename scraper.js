@@ -432,10 +432,156 @@ async function scrapeZepto(query) {
     }
 }
 
+async function scrapeJioMart(query) {
+    try {
+        const url = `https://www.jiomart.com/search/${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        $('.plp-card-container, .jm-product-list-container li, .product-card').each((i, el) => {
+            const title = $(el).find('.plp-card-details-name, .product-title, .jm-heading-s').first().text().trim();
+            const priceStr = $(el).find('.plp-card-details-price, .product-price, .jm-heading-xxs').first().text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const linkObj = $(el).find('a').first();
+            const link = linkObj.length ? 'https://www.jiomart.com' + linkObj.attr('href') : null;
+            let image = $(el).find('img').first().attr('src') || $(el).find('img').first().attr('data-src');
+            image = fixImageUrl(image, 'https://www.jiomart.com');
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'JioMart',
+                    title, price: parseFloat(price), link, image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/en/2/23/JioMart_logo.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("JioMart error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeTataCliq(query) {
+    try {
+        const url = `https://www.tatacliq.com/search/?searchCategory=all&text=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        $('.ProductModule__dummyDiv, .ProductDescription__content').each((i, el) => {
+            const title = $(el).find('h2, .ProductDescription__description').first().text().trim();
+            const priceStr = $(el).find('h3, .ProductDescription__price').first().text().trim();
+            const price = priceStr.replace(/₹|,/g, '').trim();
+            const linkObj = $(el).closest('a');
+            const link = linkObj.length ? 'https://www.tatacliq.com' + linkObj.attr('href') : null;
+            let image = $(el).find('img').first().attr('src') || $(el).find('img').first().attr('data-src');
+            image = fixImageUrl(image, 'https://www.tatacliq.com');
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Tata CLiQ',
+                    title, price: parseFloat(price), link, image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/77/Tata_Cliq_Logo.png'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Tata CLiQ error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeMeesho(query) {
+    try {
+        const url = `https://www.meesho.com/search?q=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        $('.ProductList__GridCard, .sc-bdnxRM').each((i, el) => {
+            const title = $(el).find('p').first().text().trim();
+            let priceStr = $(el).find('h5, span:contains("₹")').first().text().trim();
+            let price = priceStr.replace(/₹|,/g, '').trim();
+            const linkObj = $(el).closest('a');
+            const link = linkObj.length ? 'https://www.meesho.com' + linkObj.attr('href') : null;
+            let image = $(el).find('img').first().attr('src');
+            image = fixImageUrl(image, 'https://www.meesho.com');
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Meesho',
+                    title, price: parseFloat(price), link, image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/8/85/Meesho_Logo_Full.png'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Meesho error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeAjio(query) {
+    try {
+        const url = `https://www.ajio.com/search/?text=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        $('.item').each((i, el) => {
+            const title = $(el).find('.nameCls').text().trim();
+            let priceStr = $(el).find('.price').text().trim();
+            let price = priceStr.replace(/₹|,/g, '').trim();
+            const linkObj = $(el).find('a');
+            const link = linkObj.length ? 'https://www.ajio.com' + linkObj.attr('href') : null;
+            let image = $(el).find('img').first().attr('src');
+            image = fixImageUrl(image, 'https://www.ajio.com');
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Ajio',
+                    title, price: parseFloat(price), link, image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/10/AJIO_Logo.png'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Ajio error:", error.message);
+        return [];
+    }
+}
+
+async function scrapeNykaa(query) {
+    try {
+        const url = `https://www.nykaa.com/search/result/?q=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 10000 });
+        const $ = cheerio.load(data);
+        const results = [];
+        $('.product-wrapper').each((i, el) => {
+            const title = $(el).find('.css-xrzmfa').text().trim();
+            let priceStr = $(el).find('.css-111z9ua').text().trim();
+            let price = priceStr.replace(/₹|,/g, '').trim();
+            const linkObj = $(el).find('a');
+            const link = linkObj.length ? 'https://www.nykaa.com' + linkObj.attr('href') : null;
+            let image = $(el).find('img').first().attr('src');
+            image = fixImageUrl(image, 'https://www.nykaa.com');
+            if (title && price && !isNaN(parseFloat(price)) && isRelatedProduct(title, query)) {
+                results.push({
+                    platform: 'Nykaa',
+                    title, price: parseFloat(price), link, image,
+                    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Nykaa_Logo.svg'
+                });
+            }
+        });
+        return results.slice(0, 5);
+    } catch (error) {
+        console.error("Nykaa error:", error.message);
+        return [];
+    }
+}
+
 async function searchAll(query) {
     let amazonRes = [], flipkartRes = [], snapdealRes = [], myntraRes = [], cromaRes = [], relianceRes = [], bigbasketRes = [], blinkitRes = [], instamartRes = [], zeptoRes = [];
+    let jioMartRes = [], tataCliqRes = [], meeshoRes = [], ajioRes = [], nykaaRes = [];
     try {
-        [amazonRes, flipkartRes, snapdealRes, myntraRes, cromaRes, relianceRes, bigbasketRes, blinkitRes, instamartRes, zeptoRes] = await Promise.all([
+        [amazonRes, flipkartRes, snapdealRes, myntraRes, cromaRes, relianceRes, bigbasketRes, blinkitRes, instamartRes, zeptoRes, jioMartRes, tataCliqRes, meeshoRes, ajioRes, nykaaRes] = await Promise.all([
             scrapeAmazon(query),
             scrapeFlipkart(query),
             scrapeSnapdeal(query),
@@ -445,13 +591,18 @@ async function searchAll(query) {
             scrapeBigBasket(query),
             scrapeBlinkit(query),
             scrapeInstamart(query),
-            scrapeZepto(query)
+            scrapeZepto(query),
+            scrapeJioMart(query),
+            scrapeTataCliq(query),
+            scrapeMeesho(query),
+            scrapeAjio(query),
+            scrapeNykaa(query)
         ]);
     } catch (err) {
         console.error("searchAll error:", err.message);
     }
     
-    let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes, ...bigbasketRes, ...blinkitRes, ...instamartRes, ...zeptoRes];
+    let allResults = [...amazonRes, ...flipkartRes, ...snapdealRes, ...myntraRes, ...cromaRes, ...relianceRes, ...bigbasketRes, ...blinkitRes, ...instamartRes, ...zeptoRes, ...jioMartRes, ...tataCliqRes, ...meeshoRes, ...ajioRes, ...nykaaRes];
 
     // Augment with attractive mock data
     allResults = allResults.map(item => {
